@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PDF ToolKit by Nazmul</title>
+<meta name="theme-color" content="#b3261e"><link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/icon-192.png"><link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="stylesheet" href="style.css">
+</head><body>
+<header class="top"><h1>PDF ToolKit by <a href="https://www.fb.com/nazmul577" target="_blank" rel="noopener noreferrer">Nazmul</a></h1>
+<button id="themeBtn" class="ghost" type="button" aria-label="Toggle light or dark mode">🌙 Dark</button></header>
+<main>
+<div class="tabs" role="tablist" aria-label="Tools">
+<button role="tab" id="tab-compress" aria-selected="true" data-tool="compress">Compress PDF</button>
+<button role="tab" id="tab-resize" aria-selected="false" data-tool="resize">Resize PDF</button></div>
+
+<section id="drop" class="card drop" tabindex="0" role="button" aria-label="Select a PDF">
+<p class="big">Select PDF</p><p class="muted">or drop a PDF here</p>
+<input id="fileInput" type="file" accept="application/pdf,.pdf" hidden></section>
+
+<section id="work" class="card" hidden>
+<div class="file"><span class="ico" aria-hidden="true">📄</span><div><b id="fName"></b><div class="muted">Size: <span id="fSize"></span> · Pages: <span id="fPages"></span></div></div>
+<button id="resetBtn" class="ghost" type="button">Clear</button></div>
+
+<div class="viewer"><canvas id="pv" aria-label="PDF page preview"></canvas>
+<div class="vbar"><button id="prev" class="ghost" aria-label="Previous page">‹</button><span id="pgInfo" aria-live="polite">1 / 1</span><button id="next" class="ghost" aria-label="Next page">›</button>
+<button id="zout" class="ghost" aria-label="Zoom out">−</button><button id="zin" class="ghost" aria-label="Zoom in">+</button></div></div>
+
+<div id="pCompress">
+<h2>Compression level</h2>
+<div class="seg" id="level">
+<label><input type="radio" name="lvl" value="low"><span>Low<small>Best quality</small></span></label>
+<label><input type="radio" name="lvl" value="med" checked><span>Medium<small>Balanced</small></span></label>
+<label><input type="radio" name="lvl" value="high"><span>High<small>Smallest</small></span></label></div>
+<label class="f">Target file size (optional)
+<select id="target"><option value="0">None</option><option value="512000">500 KB</option><option value="1048576">1 MB</option><option value="2097152">2 MB</option><option value="5242880">5 MB</option><option value="custom">Custom…</option></select></label>
+<label class="f" id="customWrap" hidden>Custom target (KB)<input id="customKb" type="number" min="20" step="10" value="800" inputmode="numeric"></label>
+<p class="note">Low keeps text and vectors intact (lossless re-save). Medium and High turn pages into compressed images, so text is no longer selectable. PDFs that are already optimized may not shrink, or may grow slightly.</p>
+<button id="goCompress" class="primary" type="button">Compress PDF</button></div>
+
+<div id="pResize" hidden>
+<div class="row"><label class="f">Page size<select id="size"><option value="a4">A4</option><option value="a5">A5</option><option value="a3">A3</option><option value="letter">Letter</option><option value="legal">Legal</option><option value="executive">Executive</option><option value="custom">Custom size</option></select></label>
+<label class="f">Orientation<select id="orient"><option value="p">Portrait</option><option value="l">Landscape</option></select></label></div>
+<div id="customSize" class="row" hidden><label class="f">Width<input id="cw" type="number" min="1" value="210" inputmode="decimal"></label><label class="f">Height<input id="ch" type="number" min="1" value="297" inputmode="decimal"></label>
+<label class="f">Unit<select id="unit"><option>mm</option><option>inch</option><option>pt</option></select></label></div>
+<div class="row"><label class="f">Margins<select id="margin"><option value="0">None</option><option value="10">Small (10 mm)</option><option value="20" selected>Medium (20 mm)</option><option value="30">Large (30 mm)</option><option value="custom">Custom…</option></select></label>
+<label class="f" id="cmWrap" hidden>Custom margin (mm)<input id="cm" type="number" min="0" value="15" inputmode="decimal"></label></div>
+<label class="f">Content scaling<select id="scale"><option value="fit">Fit to page</option><option value="fill">Fill page (crops edges)</option><option value="orig">Keep original scale</option></select></label>
+<label class="chk"><input type="checkbox" checked disabled> Apply to all pages <small class="muted">(page-specific resizing is not available yet)</small></label>
+<p class="note" id="rsPrev" aria-live="polite"></p>
+<button id="goResize" class="primary" type="button">Resize PDF</button></div>
+</section>
+
+<section id="result" class="card ok" hidden aria-live="polite"><h2 id="rTitle">PDF processed successfully!</h2>
+<div class="stats"><div><small>Original</small><b id="rOrig"></b></div><div><small>New</small><b id="rNew"></b></div><div><small id="rLbl">Saved</small><b id="rSave"></b></div></div>
+<p class="note" id="rNote"></p><button id="dl" class="primary" type="button">Download PDF</button></section>
+
+<p class="privacy">🔒 Your PDF is processed locally in your browser whenever possible. Files are not uploaded to a server.</p>
+</main>
+<footer><b>PDF ToolKit by <a href="https://www.fb.com/nazmul577" target="_blank" rel="noopener noreferrer">Nazmul</a></b><br>Made for simple, private PDF processing.</footer>
+
+<div id="modal" class="modal" hidden role="dialog" aria-modal="true" aria-labelledby="mTitle"><div class="card"><h2 id="mTitle">Processing PDF…</h2>
+<progress id="bar" max="100" value="0"></progress><p id="pct" role="status">0%</p></div></div>
+<div id="toast" role="alert" hidden></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+<script src="app.js"></script>
+</body></html>
